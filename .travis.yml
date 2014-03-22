@@ -1,4 +1,6 @@
 language: python
+virtualenv:
+  system_site_packages: true
 python:
   - "2.6"
   - "2.7"
@@ -8,6 +10,8 @@ before_script:
   - tar xvjf wkhtmltopdf-0.11.0_rc1-static-amd64.tar.bz2
   - sudo chown root:root wkhtmltopdf-amd64
   - sudo mv wkhtmltopdf-amd64 /usr/bin/wkhtmltopdf
+before_install:
+  - sudo apt-get install python-lxml
 install:
   - pip install flake8
   - python setup.py install
