@@ -46,6 +46,7 @@ requires = [
     'executor',
     'jinja2',
     'babel',
+    'weasyprint'
 ]
 requires.append(
     'trytond >= %s.%s, < %s.%s' %
