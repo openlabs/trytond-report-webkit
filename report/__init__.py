@@ -160,7 +160,6 @@ class ReportWebkit(Report):
         ) as source_file:
             file_name = source_file.name
             source_file.write(data)
-            source_file.close()
 
             # Evaluate argument to run with subprocess
             args = 'wkhtmltopdf'
@@ -175,4 +174,6 @@ class ReportWebkit(Report):
             args += ' %s %s.pdf' % (file_name, file_name)
             # Execute the command using executor
             execute(args)
-            return open(file_name + '.pdf').read()
+
+        with open(file_name + '.pdf') as pdfile:
+            return pdfile.read()
