@@ -135,7 +135,8 @@ class ReportWebkit(Report):
         def module_path(name):
             module, path = name.split('/', 1)
             with file_open(os.path.join(module, path)) as f:
-                return 'file://'+f.name
+                return 'file://' + f.name
+
         return {
             'dateformat': partial(format_date, locale=Transaction().language),
             'datetimeformat': partial(
