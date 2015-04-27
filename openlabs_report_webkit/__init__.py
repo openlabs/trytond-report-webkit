@@ -20,6 +20,7 @@ from functools import partial
 from jinja2 import Environment, FunctionLoader
 from babel.dates import format_date, format_datetime
 from babel.numbers import format_currency
+
 try:
     import weasyprint
 except ImportError:
@@ -34,39 +35,34 @@ from executor import execute
 
 
 class ReportWebkit(Report):
-
     @classmethod
-    def parse(cls, report, records, data, localcontext):
+    def get_context(cls, records, data):
         '''
         Parse the report and return a tuple with report type and report.
         '''
+        report_context = super(ReportWebkit, cls).get_context(records, data)
+
+        report_context['records'] = records
+        report_context['format_date'] = cls.format_date
+        report_context['format_currency'] = cls.format_currency
+        report_context['format_number'] = cls.format_number
+
+    def render(cls, report, report_context):
         pool = Pool()
-        User = pool.get('res.user')
         Translation = pool.get('ir.translation')
-
-        localcontext['data'] = data
-        localcontext['user'] = User(Transaction().user)
-        localcontext['formatLang'] = lambda *args, **kargs: \
-            cls.format_lang(*args, **kargs)
-        localcontext['StringIO'] = StringIO.StringIO
-        localcontext['time'] = time
-        localcontext['datetime'] = datetime
-        localcontext['context'] = Transaction().context
-
-        translate = TranslateFactory(cls.__name__, Transaction().language,
-            Translation)
-        localcontext['setLang'] = lambda language: translate.set_language(
-            language)
-        localcontext['records'] = records
 
         # Convert to str as buffer from DB is not supported by StringIO
         report_content = (str(report.report_content) if report.report_content
-            else False)
-
+                          else False)
         if not report_content:
             raise Exception('Error', 'Missing report file!')
 
-        result = cls.render_template(report_content, localcontext, translate)
+        translate = TranslateFactory(cls.__name__, Transaction().language,
+                                     Translation)
+        report_context['setLang'] = lambda language: translate.set_language(
+            language)
+
+        result = cls.render_template(report_content, report_context, translate)
 
         output_format = report.extension or report.template_extension
         # Convert the report to PDF if the output format is PDF
@@ -137,6 +133,7 @@ class ReportWebkit(Report):
         refer to the Babel `Documentation
         <http://babel.edgewall.org/wiki/Documentation>`_.
         """
+
         def module_path(name):
             module, path = name.split('/', 1)
             with file_open(os.path.join(module, path)) as f:
@@ -173,7 +170,7 @@ class ReportWebkit(Report):
         Call wkhtmltopdf to convert the html to pdf
         """
         with tempfile.NamedTemporaryFile(
-            suffix='.html', prefix='trytond_', delete=False
+                suffix='.html', prefix='trytond_', delete=False
         ) as source_file:
             file_name = source_file.name
             source_file.write(data)
