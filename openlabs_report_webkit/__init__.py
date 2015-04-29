@@ -12,8 +12,6 @@ try:
 except ImportError:
     import StringIO
 import os
-import time
-import datetime
 import tempfile
 from functools import partial
 
@@ -30,23 +28,14 @@ from genshi.template import MarkupTemplate
 from trytond.tools import file_open
 from trytond.pool import Pool
 from trytond.transaction import Transaction
-from trytond.report import Report, TranslateFactory, Translator, FORMAT2EXT
+from trytond.report import Report, TranslateFactory, Translator
 from executor import execute
 
 
 class ReportWebkit(Report):
+    render_method = "weasyprint"
+
     @classmethod
-    def get_context(cls, records, data):
-        '''
-        Parse the report and return a tuple with report type and report.
-        '''
-        report_context = super(ReportWebkit, cls).get_context(records, data)
-
-        report_context['records'] = records
-        report_context['format_date'] = cls.format_date
-        report_context['format_currency'] = cls.format_currency
-        report_context['format_number'] = cls.format_number
-
     def render(cls, report, report_context):
         pool = Pool()
         Translation = pool.get('ir.translation')
@@ -62,19 +51,22 @@ class ReportWebkit(Report):
         report_context['setLang'] = lambda language: translate.set_language(
             language)
 
-        result = cls.render_template(report_content, report_context, translate)
+        return cls.render_template(report_content, report_context, translate)
 
-        output_format = report.extension or report.template_extension
+    @classmethod
+    def convert(cls, report, data):
         # Convert the report to PDF if the output format is PDF
         # Do not convert when report is generated in tests, as it takes
         # time to convert to PDF due to which tests run longer.
         # Pool.test is True when running tests.
-        if output_format in ('pdf',) and not Pool.test:
-            result = cls.wkhtml_to_pdf(result)
+        output_format = report.extension or report.template_extension
 
-        # Check if the output_format has a different extension for it
-        oext = FORMAT2EXT.get(output_format, output_format)
-        return (oext, result)
+        if output_format == "html" or Pool.test:
+            return output_format, data
+        elif cls.render_method == "wkhtml":
+            return output_format, cls.wkhtml_to_pdf(data)
+        elif cls.render_method == "weasyprint":
+            return output_format, cls.weasyprint(data)
 
     @classmethod
     def render_template_genshi(cls, template_string, localcontext, translator):
