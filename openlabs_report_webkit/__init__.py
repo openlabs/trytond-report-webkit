@@ -33,7 +33,7 @@ from executor import execute
 
 
 class ReportWebkit(Report):
-    render_method = "weasyprint"
+    render_method = "webkit"
 
     @classmethod
     def render(cls, report, report_context):
@@ -63,7 +63,7 @@ class ReportWebkit(Report):
 
         if output_format == "html" or Pool.test:
             return output_format, data
-        elif cls.render_method == "wkhtml":
+        elif cls.render_method == "webkit":
             return output_format, cls.wkhtml_to_pdf(data)
         elif cls.render_method == "weasyprint":
             return output_format, cls.weasyprint(data)
