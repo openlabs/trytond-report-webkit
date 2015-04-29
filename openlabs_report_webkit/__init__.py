@@ -7,10 +7,6 @@
 
 '''
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
 import os
 import tempfile
 from functools import partial
