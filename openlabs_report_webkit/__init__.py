@@ -59,6 +59,14 @@ class ReportWebkit(Report):
             language)
         localcontext['records'] = records
 
+        try:
+            Company = pool.get('company.company')
+        except KeyError:
+            pass
+        else:
+            company_id = Transaction().context.get('company')
+            localcontext['company'] = Company(company_id)
+
         # Convert to str as buffer from DB is not supported by StringIO
         report_content = (str(report.report_content) if report.report_content
             else False)
