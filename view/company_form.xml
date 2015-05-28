@@ -1,0 +1,9 @@
+<data>
+    <xpath expr="/form/notebook/page[@id='reports']/field[@name='footer']" position="after">
+        <separator name="header_html"/>
+        <field name="header_html"/>
+        <separator name="footer_html"/>
+        <field name="footer_html"/>
+    </xpath>
+</data>
+
