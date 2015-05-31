@@ -11,6 +11,6 @@ from company import Company
 
 def register():
     Pool.register(
-            Company,
-            module='report_webkit', type_='model'
+        Company,
+        module='report_webkit', type_='model'
     )
